@@ -21,7 +21,3 @@ dist/
 .idea/
 *.swp
 *.swo
-
-# Project
-docs/specs/
-!docs/specs/product_vision.md
