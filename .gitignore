@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+.uv/
+.ruff_cache/
+build/
+dist/
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+.env*
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project
+docs/specs/
+!docs/specs/product_vision.md

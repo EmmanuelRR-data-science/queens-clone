@@ -1,0 +1,23 @@
+[project]
+name = "queens-clone-backend"
+version = "0.1.0"
+description = "Backend for Queens Game Clone"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlalchemy",
+    "psycopg2-binary",
+    "pydantic-settings",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest",
+    "httpx",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
