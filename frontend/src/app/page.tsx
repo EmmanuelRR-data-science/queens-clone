@@ -8,7 +8,7 @@ import { generateQueensBoard } from '@/lib/gameEngine';
 
 export default function Home() {
   const initialLives = 3;
-  const [gameData, setGameData] = useState<{ size: number, regions: number[][] } | null>(null);
+  const [gameData, setGameData] = useState<{ size: number, regions: number[][], solution: Array<[number, number]> } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showWin, setShowWin] = useState(false);
   const [gameOver, setGameOver] = useState(false);
@@ -137,6 +137,7 @@ export default function Home() {
           <GameBoard 
             size={gameData.size} 
             regions={gameData.regions} 
+            solution={gameData.solution}
             disabled={loading || showWin || gameOver}
             onWin={() => setShowWin(true)}
             onMistake={handleMistake}

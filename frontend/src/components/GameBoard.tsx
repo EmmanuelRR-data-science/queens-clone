@@ -21,6 +21,7 @@ const REGION_COLORS = [
 interface GameBoardProps {
   size: number;
   regions: number[][];
+  solution: Array<[number, number]>;
   disabled?: boolean;
   onWin: () => void;
   onMistake?: () => void;
@@ -35,6 +36,7 @@ function createBoolMatrix(size: number, initial: boolean) {
 export default function GameBoard({
   size,
   regions,
+  solution,
   disabled = false,
   onWin,
   onMistake,
@@ -53,10 +55,17 @@ export default function GameBoard({
   const [shakeCell, setShakeCell] = useState<{ r: number; c: number } | null>(
     null
   );
+  const pendingQueenCheckRef = useRef<{ r: number; c: number } | null>(null);
   const lastActionRef = useRef<
     | { r: number; c: number; action: 'mark' | 'queen' | 'remove-queen' }
     | null
   >(null);
+
+  const solutionSet = useMemo(() => {
+    const set = new Set<string>();
+    for (const [r, c] of solution) set.add(`${r},${c}`);
+    return set;
+  }, [solution]);
 
   const regionCells = useMemo(() => {
     const map = new Map<number, Array<[number, number]>>();
@@ -143,28 +152,26 @@ export default function GameBoard({
     return nextAutoMarks;
   };
 
-  const syncDerivedState = (queens: boolean[][]) => {
-    const nextConflicts = computeConflicts(queens);
-    const nextAutoMarks = computeAutoMarks(queens);
+  useEffect(() => {
+    const nextConflicts = computeConflicts(state.queens);
+    const nextAutoMarks = computeAutoMarks(state.queens);
     setConflicts(nextConflicts);
     setAutoMarks(nextAutoMarks);
 
-    const totalQueens = queens.flat().filter(Boolean).length;
+    const totalQueens = state.queens.flat().filter(Boolean).length;
     const hasConflicts = nextConflicts.some((row) => row.some((v) => v));
     if (totalQueens === size && !hasConflicts) onWin();
 
-    const last = lastActionRef.current;
-    if (!last) return;
-
-    if (last.action === 'queen' && nextConflicts[last.r][last.c]) {
-      setStatus('Esa reina entra en conflicto con las reglas.');
-      setShakeCell({ r: last.r, c: last.c });
-      onMistake?.();
-    } else {
-      setStatus(null);
-      setShakeCell(null);
+    const pending = pendingQueenCheckRef.current;
+    if (pending) {
+      pendingQueenCheckRef.current = null;
+      if (nextConflicts[pending.r]?.[pending.c]) {
+        setStatus('Esa reina entra en conflicto con las reglas.');
+        setShakeCell({ r: pending.r, c: pending.c });
+        onMistake?.();
+      }
     }
-  };
+  }, [state.queens, size, onWin, onMistake, regions, regionCells]);
 
   // Manejar click en celda
   const handleCellClick = (r: number, c: number) => {
@@ -179,16 +186,30 @@ export default function GameBoard({
       if (hasQueen) {
         nextQueens[r][c] = false;
         lastActionRef.current = { r, c, action: 'remove-queen' };
+        setStatus(null);
+        setShakeCell(null);
       } else if (hasUserMark) {
+        const isCorrect = solutionSet.has(`${r},${c}`);
+        if (!isCorrect) {
+          setStatus('Esa reina es incorrecta.');
+          setShakeCell({ r, c });
+          onMistake?.();
+          lastActionRef.current = { r, c, action: 'queen' };
+          return { queens: nextQueens, userMarks: nextUserMarks };
+        }
+
         nextQueens[r][c] = true;
         nextUserMarks[r][c] = false;
+        pendingQueenCheckRef.current = { r, c };
         lastActionRef.current = { r, c, action: 'queen' };
+        setStatus(null);
+        setShakeCell(null);
       } else {
         nextUserMarks[r][c] = true;
         lastActionRef.current = { r, c, action: 'mark' };
+        setStatus(null);
+        setShakeCell(null);
       }
-
-      queueMicrotask(() => syncDerivedState(nextQueens));
 
       return { queens: nextQueens, userMarks: nextUserMarks };
     });
@@ -203,8 +224,9 @@ export default function GameBoard({
     setAutoMarks(createBoolMatrix(size, false));
     setStatus(null);
     setShakeCell(null);
+    pendingQueenCheckRef.current = null;
     lastActionRef.current = null;
-  }, [size, regions]);
+  }, [size, regions, solution]);
 
   return (
     <div className="flex flex-col items-center gap-3">
