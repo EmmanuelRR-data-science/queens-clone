@@ -16,6 +16,7 @@ Definir la arquitectura del motor de generación procedural de tableros y establ
 - Implementar UX de apoyo sin spoilers: auto-marcado de casillas inválidas y feedback de error sin revelar la solución.
 - Implementar sistema de vidas: 3 vidas por partida; cada error consume 1 vida; al llegar a 0 el jugador pierde.
 - Persistir retos en PostgreSQL para compartir por ID (además de seed).
+- Persistir métricas por reto (tiempo de resolución y errores) cuando exista `puzzle_id`.
 
 ## 3. Non-Goals
 - No se implementará modo multijugador en esta fase inicial.
@@ -46,11 +47,15 @@ El sistema se dividirá en un backend de alta performance (Python) encargado de 
 
 ### Persistencia (PostgreSQL):
 - Tabla `puzzles`: `id`, `size`, `seed`, `regions`, `solution`, `created_at`.
+- Tabla `puzzle_attempts`: `id`, `puzzle_id`, `outcome`, `mistakes`, `duration_ms`, `started_at?`, `ended_at?`, `created_at`.
 - Endpoints:
   - `POST /puzzles` crea y persiste un reto (acepta `size` y `seed?`).
   - `GET /puzzles/{id}` recupera un reto persistido.
+  - `POST /puzzles/{id}/attempts` registra un intento para un reto persistido.
+  - `GET /puzzles/{id}/stats` devuelve estadísticas agregadas del reto persistido.
 - UX: el cliente puede mostrar `seed` y ofrecer un botón para guardar el reto y obtener `id`.
 - UX: el cliente puede cargar un reto persistido introduciendo `id` y llamando `GET /puzzles/{id}`.
+ - UX: si el reto tiene `id`, al ganar o perder se registra un intento con duración y errores.
 
 ### UX / Interacción:
 - Ciclo de interacción por celda: vacío → X → reina → (clic) quitar reina.
@@ -67,6 +72,7 @@ El sistema se dividirá en un backend de alta performance (Python) encargado de 
 ### Métricas de Producto:
 - Tiempo promedio para resolver un tablero 8x8.
 - Tasa de reintentos por nivel de dificultad.
+- Errores promedio (vidas consumidas) por reto persistido.
 
 ---
 **Links:**

@@ -36,16 +36,28 @@
   - `regions` (json)
   - `solution` (json)
   - `created_at` (timestamp)
+- `puzzle_attempts`:
+  - `id` (int)
+  - `puzzle_id` (int, FK → puzzles.id)
+  - `outcome` (text: `win` | `lose`)
+  - `mistakes` (int)
+  - `duration_ms` (int)
+  - `started_at` (timestamp, nullable)
+  - `ended_at` (timestamp, nullable)
+  - `created_at` (timestamp)
 
 ### Endpoints (Backend)
 - `GET /generate?size=N&seed=SEED?` genera un reto (no necesariamente persistido) y devuelve `seed`.
 - `POST /puzzles` crea y persiste un reto.
 - `GET /puzzles/{id}` obtiene un reto persistido.
+- `POST /puzzles/{id}/attempts` registra un intento (métricas) para un reto persistido.
+- `GET /puzzles/{id}/stats` obtiene estadísticas agregadas del reto persistido.
 
 ### Integración Frontend
 - El cliente muestra el reto como `size` + `seed` para compartir.
 - El cliente puede persistir el reto llamando `POST /puzzles` y mostrar el `id` resultante.
 - El cliente puede cargar un reto persistido introduciendo `id` y llamando `GET /puzzles/{id}`.
+- Si el reto tiene `id`, el cliente registra un intento al finalizar (victoria/derrota), incluyendo duración y errores.
 
 ## 3. Motor de Generación (Python)
 Se utilizará un algoritmo de **Constraint Satisfaction Problem (CSP)** con backtracking optimizado para asegurar que:

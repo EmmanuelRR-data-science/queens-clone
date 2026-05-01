@@ -15,6 +15,7 @@ Recrear la mecánica del juego "Queens" de LinkedIn con un enfoque premium, tabl
 - **Retos Compartibles**: Cada reto debe poder reproducirse con `size` + `seed` (y en el futuro, un ID en PostgreSQL).
 - **Retos Persistidos**: Los retos pueden guardarse en PostgreSQL y compartirse por `id`.
 - **Abrir por ID**: El jugador puede ingresar un `id` y cargar el reto guardado.
+- **Métricas por Reto**: Si el reto tiene `id`, el sistema registra un intento al finalizar (victoria/derrota), incluyendo duración y errores (vidas consumidas), y permite consultar estadísticas agregadas.
 - **Interfaz de Usuario**:
     - Tablero interactivo con respuesta táctil/visual.
     - Efectos visuales al colocar/quitar reinas.
@@ -34,3 +35,4 @@ Recrear la mecánica del juego "Queens" de LinkedIn con un enfoque premium, tabl
 - Se genera un nuevo tablero único cada vez que se solicita una nueva partida.
 - El usuario empieza con 3 vidas; cada reina en conflicto descuenta 1; con 0 vidas se muestra derrota y se bloquea la interacción hasta reiniciar.
 - El error debe señalar que la reina es incorrecta sin indicar la posición correcta.
+- Si el reto tiene `id`, al finalizar (victoria/derrota) se registra un intento con duración y errores, y es posible consultar estadísticas agregadas por `id`.

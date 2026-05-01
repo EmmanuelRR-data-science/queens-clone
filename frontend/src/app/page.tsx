@@ -8,6 +8,7 @@ import { generateQueensBoard } from '@/lib/gameEngine';
 
 export default function Home() {
   const initialLives = 3;
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:8000';
   const [gameData, setGameData] = useState<{ size: number, seed: number, regions: number[][], solution: Array<[number, number]> } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showWin, setShowWin] = useState(false);
@@ -15,6 +16,9 @@ export default function Home() {
   const [difficulty, setDifficulty] = useState(8);
   const [error, setError] = useState<string | null>(null);
   const [lives, setLives] = useState(initialLives);
+  const [mistakes, setMistakes] = useState(0);
+  const [startedAtMs, setStartedAtMs] = useState<number | null>(null);
+  const [attemptSubmitted, setAttemptSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
   const [puzzleId, setPuzzleId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
@@ -23,12 +27,15 @@ export default function Home() {
 
   const handleMistake = () => {
     if (loading || showWin || gameOver) return;
+    setMistakes((prev) => prev + 1);
     setLives((prev) => {
-      const next = Math.max(prev - 1, 0);
-      if (next === 0) setGameOver(true);
-      return next;
+      return Math.max(prev - 1, 0);
     });
   };
+
+  useEffect(() => {
+    if (lives === 0 && !gameOver) setGameOver(true);
+  }, [lives, gameOver]);
 
   const fetchNewGame = async (size: number) => {
     setLoading(true);
@@ -36,13 +43,16 @@ export default function Home() {
     setGameOver(false);
     setError(null);
     setLives(initialLives);
+    setMistakes(0);
+    setAttemptSubmitted(false);
+    setStartedAtMs(Date.now());
     setCopied(false);
     setPuzzleId(null);
     console.log(`Intentando cargar tablero de tamaño ${size}...`);
 
     try {
       // Intentar con el Backend
-      const res = await fetch(`http://127.0.0.1:8000/generate?size=${size}`, { 
+      const res = await fetch(`${apiBaseUrl}/generate?size=${size}`, { 
         mode: 'cors',
         headers: { 'Accept': 'application/json' }
       });
@@ -86,7 +96,7 @@ export default function Home() {
     if (!gameData || saving) return;
     setSaving(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/puzzles", {
+      const res = await fetch(`${apiBaseUrl}/puzzles`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ size: gameData.size, seed: gameData.seed }),
@@ -110,10 +120,13 @@ export default function Home() {
     setGameOver(false);
     setError(null);
     setLives(initialLives);
+    setMistakes(0);
+    setAttemptSubmitted(false);
+    setStartedAtMs(Date.now());
     setCopied(false);
     setPuzzleId(null);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/puzzles/${id}`, {
+      const res = await fetch(`${apiBaseUrl}/puzzles/${id}`, {
         mode: "cors",
         headers: { Accept: "application/json" },
       });
@@ -128,6 +141,36 @@ export default function Home() {
       setLoadingPuzzle(false);
     }
   };
+
+  const submitAttempt = async (outcome: "win" | "lose") => {
+    if (!puzzleId || startedAtMs === null) return;
+    const endedAtMs = Date.now();
+    const payload = {
+      outcome,
+      mistakes,
+      duration_ms: Math.max(0, endedAtMs - startedAtMs),
+      started_at: new Date(startedAtMs).toISOString(),
+      ended_at: new Date(endedAtMs).toISOString(),
+    };
+
+    try {
+      const res = await fetch(`${apiBaseUrl}/puzzles/${puzzleId}/attempts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("No se pudo registrar intento");
+      setAttemptSubmitted(true);
+    } catch {
+      setError((prev) => prev ?? "No se pudieron registrar métricas de la partida (Backend no disponible).");
+    }
+  };
+
+  useEffect(() => {
+    if (!puzzleId || attemptSubmitted) return;
+    if (showWin) submitAttempt("win");
+    if (gameOver) submitAttempt("lose");
+  }, [showWin, gameOver, puzzleId, attemptSubmitted]);
 
   return (
     <main className="min-h-screen bg-[#0f172a] text-slate-200 flex flex-col items-center justify-center p-4 overflow-hidden">
