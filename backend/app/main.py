@@ -1,8 +1,18 @@
 from fastapi import FastAPI, Query
+from fastapi.middleware.cors import CORSMiddleware
 from app.generator.engine import QueensGenerator
 from typing import List, Tuple
 
 app = FastAPI(title="Queens Clone API")
+
+# Configurar CORS para permitir peticiones desde el frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # En producción, especificar el dominio del frontend
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():

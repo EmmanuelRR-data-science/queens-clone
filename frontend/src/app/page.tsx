@@ -3,25 +3,43 @@
 import { useState, useEffect } from 'react';
 import GameBoard from '@/components/GameBoard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Trophy, Settings } from 'lucide-react';
+import { RefreshCw, Trophy, Settings, AlertCircle } from 'lucide-react';
+import { generateQueensBoard } from '@/lib/gameEngine';
 
 export default function Home() {
   const [gameData, setGameData] = useState<{ size: number, regions: number[][] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showWin, setShowWin] = useState(false);
   const [difficulty, setDifficulty] = useState(8);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchNewGame = async (size: number) => {
     setLoading(true);
     setShowWin(false);
+    setError(null);
+    console.log(`Intentando cargar tablero de tamaño ${size}...`);
+
     try {
-      // Intentar conectar al backend local
-      const res = await fetch(`http://localhost:8000/generate?size=${size}`);
+      // Intentar con el Backend
+      const res = await fetch(`http://127.0.0.1:8000/generate?size=${size}`, { 
+        mode: 'cors',
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      if (!res.ok) throw new Error("Backend respondió con error");
       const data = await res.json();
+      console.log("Tablero cargado desde el Backend ✅");
       setGameData(data);
     } catch (err) {
-      console.error("Backend not reachable, using fallback generation", err);
-      // Fallback para desarrollo sin backend corriendo
+      console.warn("Backend inaccesible, activando motor de respaldo (Frontend Fallback) 🛠️");
+      // Activar Fallback
+      const fallbackData = generateQueensBoard(size);
+      if (fallbackData) {
+        setGameData(fallbackData);
+        setError("Modo Offline: Usando generador local (Backend no detectado)");
+      } else {
+        setError("Error crítico: No se pudo generar el tablero.");
+      }
     } finally {
       setLoading(false);
     }
@@ -48,24 +66,37 @@ export default function Home() {
       </motion.div>
 
       {/* Controles */}
-      <div className="flex gap-4 mb-8">
-        <button 
-          onClick={() => fetchNewGame(difficulty)}
-          className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 px-6 py-3 rounded-full font-bold transition-all border border-slate-700 active:scale-95"
-        >
-          <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
-          Nuevo Reto
-        </button>
-        <select 
-          value={difficulty}
-          onChange={(e) => setDifficulty(Number(e.target.value))}
-          className="bg-slate-800 border border-slate-700 px-4 py-3 rounded-full font-bold outline-none cursor-pointer"
-        >
-          <option value={5}>Fácil (5x5)</option>
-          <option value={8}>Normal (8x8)</option>
-          <option value={12}>Difícil (12x12)</option>
-          <option value={15}>Experto (15x15)</option>
-        </select>
+      <div className="flex flex-col items-center gap-4 mb-8">
+        <div className="flex gap-4">
+          <button 
+            onClick={() => fetchNewGame(difficulty)}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 px-6 py-3 rounded-full font-bold transition-all border border-slate-700 active:scale-95"
+          >
+            <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
+            Nuevo Reto
+          </button>
+          <select 
+            value={difficulty}
+            onChange={(e) => setDifficulty(Number(e.target.value))}
+            className="bg-slate-800 border border-slate-700 px-4 py-3 rounded-full font-bold outline-none cursor-pointer"
+          >
+            <option value={5}>Fácil (5x5)</option>
+            <option value={8}>Normal (8x8)</option>
+            <option value={12}>Difícil (12x12)</option>
+            <option value={15}>Experto (15x15)</option>
+          </select>
+        </div>
+        
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 text-amber-400 text-xs font-semibold bg-amber-400/10 px-4 py-1.5 rounded-full border border-amber-400/20"
+          >
+            <AlertCircle size={14} />
+            {error}
+          </motion.div>
+        )}
       </div>
 
       {/* Área del Juego */}
