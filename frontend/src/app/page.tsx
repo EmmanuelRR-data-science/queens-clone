@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import GameBoard from '@/components/GameBoard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Trophy, Settings, AlertCircle, Heart, Skull } from 'lucide-react';
+import { Archive, Copy, RefreshCw, Trophy, Settings, AlertCircle, Heart, Skull } from 'lucide-react';
 import { generateQueensBoard } from '@/lib/gameEngine';
 
 export default function Home() {
@@ -15,6 +15,9 @@ export default function Home() {
   const [difficulty, setDifficulty] = useState(8);
   const [error, setError] = useState<string | null>(null);
   const [lives, setLives] = useState(initialLives);
+  const [copied, setCopied] = useState(false);
+  const [puzzleId, setPuzzleId] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const handleMistake = () => {
     if (loading || showWin || gameOver) return;
@@ -31,6 +34,8 @@ export default function Home() {
     setGameOver(false);
     setError(null);
     setLives(initialLives);
+    setCopied(false);
+    setPuzzleId(null);
     console.log(`Intentando cargar tablero de tamaño ${size}...`);
 
     try {
@@ -62,6 +67,37 @@ export default function Home() {
   useEffect(() => {
     fetchNewGame(difficulty);
   }, [difficulty]);
+
+  const copyChallenge = async () => {
+    if (!gameData) return;
+    const text = `size=${gameData.size}&seed=${gameData.seed}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      setCopied(false);
+    }
+  };
+
+  const savePuzzle = async () => {
+    if (!gameData || saving) return;
+    setSaving(true);
+    try {
+      const res = await fetch("http://127.0.0.1:8000/puzzles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ size: gameData.size, seed: gameData.seed }),
+      });
+      if (!res.ok) throw new Error("No se pudo guardar el reto");
+      const saved = await res.json();
+      setPuzzleId(saved.id);
+    } catch {
+      setError("No se pudo guardar el reto (Backend no disponible).");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#0f172a] text-slate-200 flex flex-col items-center justify-center p-4 overflow-hidden">
@@ -114,6 +150,32 @@ export default function Home() {
             ))}
           </div>
         </div>
+
+        {gameData && (
+          <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold">
+            <span className="uppercase tracking-wide text-slate-400">Reto</span>
+            <span className="font-mono text-slate-200 bg-slate-800/70 border border-slate-700 px-2 py-1 rounded-lg">
+              size={gameData.size}&seed={gameData.seed}
+            </span>
+            <button
+              onClick={copyChallenge}
+              className="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 rounded-lg active:scale-95 transition-all"
+              title="Copiar reto"
+            >
+              <Copy size={14} />
+              {copied ? "Copiado" : "Copiar"}
+            </button>
+            <button
+              onClick={savePuzzle}
+              className="flex items-center gap-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-2 py-1 rounded-lg active:scale-95 transition-all disabled:opacity-60"
+              title="Guardar reto"
+              disabled={saving}
+            >
+              <Archive size={14} />
+              {puzzleId ? `Guardado #${puzzleId}` : saving ? "Guardando" : "Guardar"}
+            </button>
+          </div>
+        )}
         
         {error && (
           <motion.div 

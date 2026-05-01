@@ -13,6 +13,7 @@ Recrear la mecánica del juego "Queens" de LinkedIn con un enfoque premium, tabl
 - **Dificultad Progresiva**: Tableros desde 5x5 hasta 20x20 con formas geométricas complejas.
 - **Persistencia**: Guardar semillas de tableros en PostgreSQL para permitir la recreación de los mismos retos.
 - **Retos Compartibles**: Cada reto debe poder reproducirse con `size` + `seed` (y en el futuro, un ID en PostgreSQL).
+- **Retos Persistidos**: Los retos pueden guardarse en PostgreSQL y compartirse por `id`.
 - **Interfaz de Usuario**:
     - Tablero interactivo con respuesta táctil/visual.
     - Efectos visuales al colocar/quitar reinas.

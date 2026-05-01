@@ -28,6 +28,24 @@
 - **Frontend**: Next.js (React) + Framer Motion.
 - **Comunicación**: REST API / WebSockets para actualizaciones en tiempo real si fuera necesario.
 
+### Modelo de Datos (PostgreSQL)
+- `puzzles`:
+  - `id` (int)
+  - `size` (int)
+  - `seed` (int)
+  - `regions` (json)
+  - `solution` (json)
+  - `created_at` (timestamp)
+
+### Endpoints (Backend)
+- `GET /generate?size=N&seed=SEED?` genera un reto (no necesariamente persistido) y devuelve `seed`.
+- `POST /puzzles` crea y persiste un reto.
+- `GET /puzzles/{id}` obtiene un reto persistido.
+
+### Integración Frontend
+- El cliente muestra el reto como `size` + `seed` para compartir.
+- El cliente puede persistir el reto llamando `POST /puzzles` y mostrar el `id` resultante.
+
 ## 3. Motor de Generación (Python)
 Se utilizará un algoritmo de **Constraint Satisfaction Problem (CSP)** con backtracking optimizado para asegurar que:
 1. Se generen regiones contiguas válidas.

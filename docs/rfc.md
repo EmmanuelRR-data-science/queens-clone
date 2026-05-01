@@ -15,6 +15,7 @@ Definir la arquitectura del motor de generación procedural de tableros y establ
 - Implementar persistencia de retos mediante semillas.
 - Implementar UX de apoyo sin spoilers: auto-marcado de casillas inválidas y feedback de error sin revelar la solución.
 - Implementar sistema de vidas: 3 vidas por partida; cada error consume 1 vida; al llegar a 0 el jugador pierde.
+- Persistir retos en PostgreSQL para compartir por ID (además de seed).
 
 ## 3. Non-Goals
 - No se implementará modo multijugador en esta fase inicial.
@@ -42,6 +43,13 @@ El sistema se dividirá en un backend de alta performance (Python) encargado de 
 - Si `seed` no se proporciona, el backend genera uno y lo devuelve en la respuesta.
 - Para un `size` y `seed` dados, el generador debe ser determinístico (mismo `regions` y `solution`).
 - El frontend puede usar el `seed` para compartir y re-jugar un reto exacto.
+
+### Persistencia (PostgreSQL):
+- Tabla `puzzles`: `id`, `size`, `seed`, `regions`, `solution`, `created_at`.
+- Endpoints:
+  - `POST /puzzles` crea y persiste un reto (acepta `size` y `seed?`).
+  - `GET /puzzles/{id}` recupera un reto persistido.
+- UX: el cliente puede mostrar `seed` y ofrecer un botón para guardar el reto y obtener `id`.
 
 ### UX / Interacción:
 - Ciclo de interacción por celda: vacío → X → reina → (clic) quitar reina.
