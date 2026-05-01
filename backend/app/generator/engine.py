@@ -1,5 +1,5 @@
 import random
-from typing import List, Tuple, Set, Optional
+from typing import List, Optional, Tuple
 
 class QueensGenerator:
     """
@@ -8,8 +8,10 @@ class QueensGenerator:
     validación mediante CSP (Constraint Satisfaction Problem).
     """
 
-    def __init__(self, size: int):
+    def __init__(self, size: int, seed: int | None = None):
         self.size = size
+        self.seed = seed
+        self.rng = random.Random(seed)
         self.board = [[None for _ in range(size)] for _ in range(size)]
         self.regions = [[-1 for _ in range(size)] for _ in range(size)]
 
@@ -17,6 +19,7 @@ class QueensGenerator:
         """
         Genera un tablero completo: regiones y una solución válida.
         """
+        self.regions = [[-1 for _ in range(self.size)] for _ in range(self.size)]
         # 1. Generar una solución válida primero para asegurar que el tablero sea resoluble
         solution = self._generate_valid_queen_placement()
         if not solution:
@@ -34,8 +37,8 @@ class QueensGenerator:
         queens = []
         rows = list(range(self.size))
         cols = list(range(self.size))
-        random.shuffle(rows)
-        random.shuffle(cols)
+        self.rng.shuffle(rows)
+        self.rng.shuffle(cols)
 
         def is_safe(r, c, placed_queens):
             for qr, qc in placed_queens:
@@ -52,7 +55,7 @@ class QueensGenerator:
             r = rows[row_idx]
             # Mezclar columnas para aleatoriedad
             shuffled_cols = list(range(self.size))
-            random.shuffle(shuffled_cols)
+            self.rng.shuffle(shuffled_cols)
             
             for c in shuffled_cols:
                 if is_safe(r, c, queens):
@@ -77,7 +80,7 @@ class QueensGenerator:
             self.regions[r][c] = i
             queue.append((r, c, i))
 
-        random.shuffle(queue)
+        self.rng.shuffle(queue)
         
         # Expandir regiones aleatoriamente hasta llenar el tablero
         cells_left = self.size * self.size - self.size
@@ -87,7 +90,7 @@ class QueensGenerator:
             
             # Vecinos (Arriba, Abajo, Izquierda, Derecha)
             neighbors = [(r-1, c), (r+1, c), (r, c-1), (r, c+1)]
-            random.shuffle(neighbors)
+            self.rng.shuffle(neighbors)
             
             for nr, nc in neighbors:
                 if 0 <= nr < self.size and 0 <= nc < self.size:
@@ -96,8 +99,8 @@ class QueensGenerator:
                         queue.append((nr, nc, region_id))
                         cells_left -= 1
                         # Pequeña probabilidad de mover al frente para crecimiento más orgánico
-                        if random.random() > 0.3:
-                            random.shuffle(queue)
+                        if self.rng.random() > 0.3:
+                            self.rng.shuffle(queue)
                         break
             
             # Si la región actual no pudo expandirse pero aún quedan celdas, 

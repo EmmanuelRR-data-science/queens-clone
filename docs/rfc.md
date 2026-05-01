@@ -37,10 +37,17 @@ El sistema se dividirá en un backend de alta performance (Python) encargado de 
 - **Frontend**: Next.js (React) + Framer Motion.
 - **DB**: PostgreSQL.
 
+### Seed / Retos Reproducibles:
+- El backend expone `GET /generate?size=N&seed=SEED?`.
+- Si `seed` no se proporciona, el backend genera uno y lo devuelve en la respuesta.
+- Para un `size` y `seed` dados, el generador debe ser determinístico (mismo `regions` y `solution`).
+- El frontend puede usar el `seed` para compartir y re-jugar un reto exacto.
+
 ### UX / Interacción:
 - Ciclo de interacción por celda: vacío → X → reina → (clic) quitar reina.
 - Al colocar una reina, se auto-marcan con X: fila, columna, región/color y adyacentes.
-- Si el usuario coloca una reina en conflicto: mostrar mensaje de error y animación sutil (sin indicar la posición correcta), descontar una vida.
+- Si el usuario coloca una reina incorrecta: mostrar mensaje de error y animación sutil (sin indicar la posición correcta), descontar exactamente 1 vida.
+- La validación de “incorrecto” se basa en la solución generada para el tablero (sin revelar la solución al usuario).
 
 ## 7. Métricas
 ### Métricas Técnicas:

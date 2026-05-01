@@ -34,6 +34,10 @@ Se utilizará un algoritmo de **Constraint Satisfaction Problem (CSP)** con back
 2. Exista al menos una solución única para el tablero.
 3. El tablero cumpla con las restricciones de Queens.
 
+### Determinismo por Seed
+- El generador acepta un `seed` opcional para producir retos reproducibles.
+- Para un `size` y `seed` dados, el resultado debe ser determinístico.
+
 ## 4. Estándares de Calidad
 - Linting y formateo con **Ruff**.
 - Commits siguiendo **Conventional Commits**.
@@ -42,5 +46,5 @@ Se utilizará un algoritmo de **Constraint Satisfaction Problem (CSP)** con back
 ## 5. UX del Juego
 - Interacción por celda: vacío → X → reina → (clic) quitar reina.
 - Al colocar una reina, el cliente auto-marca con X: fila, columna, región/color y adyacentes.
-- Feedback de error sin spoilers: mensaje y animación sutil al colocar una reina en conflicto.
-- Sistema de vidas: 3 vidas por partida; cada error descuenta 1 vida; al llegar a 0, derrota.
+- Feedback de error sin spoilers: mensaje y animación sutil al colocar una reina incorrecta (sin revelar la casilla correcta).
+- Sistema de vidas: 3 vidas por partida; cada reina incorrecta descuenta exactamente 1 vida; al llegar a 0, derrota y bloqueo de interacción hasta reinicio.

@@ -1,3 +1,5 @@
+import random
+
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from app.generator.engine import QueensGenerator
@@ -20,16 +22,19 @@ async def root():
 
 @app.get("/generate")
 async def generate_board(
-    size: int = Query(default=8, ge=5, le=20)
+    size: int = Query(default=8, ge=5, le=20),
+    seed: int | None = Query(default=None, ge=0),
 ):
     """
     Endpoint para generar un nuevo tablero de Queens.
     """
-    generator = QueensGenerator(size)
+    effective_seed = seed if seed is not None else random.randint(0, 2**31 - 1)
+    generator = QueensGenerator(size, seed=effective_seed)
     regions, solution = generator.generate()
     
     return {
         "size": size,
+        "seed": effective_seed,
         "regions": regions,
         "solution": solution,
         "rules": [

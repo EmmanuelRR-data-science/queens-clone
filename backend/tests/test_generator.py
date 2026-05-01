@@ -79,3 +79,18 @@ def test_different_sizes(size):
     regions, solution = gen.generate()
     assert len(regions) == size
     assert len(solution) == size
+
+
+def test_deterministic_generation_with_seed():
+    """Verifica que para un mismo size + seed el tablero sea reproducible."""
+    size = 8
+    seed = 123456
+
+    gen_a = QueensGenerator(size, seed=seed)
+    regions_a, solution_a = gen_a.generate()
+
+    gen_b = QueensGenerator(size, seed=seed)
+    regions_b, solution_b = gen_b.generate()
+
+    assert regions_a == regions_b
+    assert solution_a == solution_b
