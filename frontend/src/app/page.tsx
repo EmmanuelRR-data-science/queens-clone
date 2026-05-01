@@ -18,6 +18,8 @@ export default function Home() {
   const [copied, setCopied] = useState(false);
   const [puzzleId, setPuzzleId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [loadPuzzleId, setLoadPuzzleId] = useState<string>("");
+  const [loadingPuzzle, setLoadingPuzzle] = useState(false);
 
   const handleMistake = () => {
     if (loading || showWin || gameOver) return;
@@ -99,6 +101,34 @@ export default function Home() {
     }
   };
 
+  const loadPuzzle = async () => {
+    const id = Number(loadPuzzleId);
+    if (!Number.isFinite(id) || id <= 0 || loadingPuzzle) return;
+    setLoadingPuzzle(true);
+    setLoading(true);
+    setShowWin(false);
+    setGameOver(false);
+    setError(null);
+    setLives(initialLives);
+    setCopied(false);
+    setPuzzleId(null);
+    try {
+      const res = await fetch(`http://127.0.0.1:8000/puzzles/${id}`, {
+        mode: "cors",
+        headers: { Accept: "application/json" },
+      });
+      if (!res.ok) throw new Error("No se pudo cargar el reto");
+      const data = await res.json();
+      setGameData(data);
+      setPuzzleId(data.id);
+    } catch {
+      setError("No se pudo cargar el reto por ID (Backend no disponible o ID inválido).");
+    } finally {
+      setLoading(false);
+      setLoadingPuzzle(false);
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#0f172a] text-slate-200 flex flex-col items-center justify-center p-4 overflow-hidden">
       {/* Header */}
@@ -176,6 +206,25 @@ export default function Home() {
             </button>
           </div>
         )}
+
+        <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold">
+          <span className="uppercase tracking-wide text-slate-400">Cargar</span>
+          <input
+            value={loadPuzzleId}
+            onChange={(e) => setLoadPuzzleId(e.target.value)}
+            inputMode="numeric"
+            placeholder="ID"
+            className="w-24 bg-slate-800/70 border border-slate-700 px-3 py-2 rounded-lg font-mono text-slate-200 outline-none"
+          />
+          <button
+            onClick={loadPuzzle}
+            disabled={loadingPuzzle}
+            className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 px-3 py-2 rounded-lg active:scale-95 transition-all disabled:opacity-60"
+          >
+            <RefreshCw size={14} className={loadingPuzzle ? "animate-spin" : ""} />
+            {loadingPuzzle ? "Cargando" : "Abrir"}
+          </button>
+        </div>
         
         {error && (
           <motion.div 

@@ -50,6 +50,7 @@ El sistema se dividirá en un backend de alta performance (Python) encargado de 
   - `POST /puzzles` crea y persiste un reto (acepta `size` y `seed?`).
   - `GET /puzzles/{id}` recupera un reto persistido.
 - UX: el cliente puede mostrar `seed` y ofrecer un botón para guardar el reto y obtener `id`.
+- UX: el cliente puede cargar un reto persistido introduciendo `id` y llamando `GET /puzzles/{id}`.
 
 ### UX / Interacción:
 - Ciclo de interacción por celda: vacío → X → reina → (clic) quitar reina.

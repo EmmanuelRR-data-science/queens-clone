@@ -45,6 +45,7 @@
 ### Integración Frontend
 - El cliente muestra el reto como `size` + `seed` para compartir.
 - El cliente puede persistir el reto llamando `POST /puzzles` y mostrar el `id` resultante.
+- El cliente puede cargar un reto persistido introduciendo `id` y llamando `GET /puzzles/{id}`.
 
 ## 3. Motor de Generación (Python)
 Se utilizará un algoritmo de **Constraint Satisfaction Problem (CSP)** con backtracking optimizado para asegurar que:
