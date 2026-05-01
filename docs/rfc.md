@@ -13,6 +13,8 @@ Definir la arquitectura del motor de generación procedural de tableros y establ
 - Generar tableros de N x N (5 a 20) con regiones contiguas y solución única.
 - Definir un stack de frontend capaz de manejar animaciones fluidas y efectos visuales premium.
 - Implementar persistencia de retos mediante semillas.
+- Implementar UX de apoyo sin spoilers: auto-marcado de casillas inválidas y feedback de error sin revelar la solución.
+- Implementar sistema de vidas: 3 vidas por partida; cada error consume 1 vida; al llegar a 0 el jugador pierde.
 
 ## 3. Non-Goals
 - No se implementará modo multijugador en esta fase inicial.
@@ -32,8 +34,13 @@ El sistema se dividirá en un backend de alta performance (Python) encargado de 
 
 ### Propuesta Arquitectura:
 - **Backend**: FastAPI + UV + Ruff.
-- **Frontend**: React (Investigar PixiJS para el renderizado del tablero).
+- **Frontend**: Next.js (React) + Framer Motion.
 - **DB**: PostgreSQL.
+
+### UX / Interacción:
+- Ciclo de interacción por celda: vacío → X → reina → (clic) quitar reina.
+- Al colocar una reina, se auto-marcan con X: fila, columna, región/color y adyacentes.
+- Si el usuario coloca una reina en conflicto: mostrar mensaje de error y animación sutil (sin indicar la posición correcta), descontar una vida.
 
 ## 7. Métricas
 ### Métricas Técnicas:

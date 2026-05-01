@@ -10,7 +10,7 @@
 │   │   └── models/         # Modelos de datos (PostgreSQL)
 │   ├── pyproject.toml      # Configuración UV
 │   └── ruff.toml           # Configuración Ruff
-├── frontend/               # Interfaz de usuario (React/Next.js/PixiJS - TBD)
+├── frontend/               # Interfaz de usuario (Next.js + Framer Motion)
 ├── docker/                 # Configuración de contenedores
 │   ├── Dockerfile.backend
 │   ├── Dockerfile.frontend
@@ -25,7 +25,7 @@
 ## 2. Arquitectura Técnica
 - **Backend**: Python 3.12+, FastAPI, UV para gestión de paquetes.
 - **Base de Datos**: PostgreSQL para almacenar semillas y estadísticas.
-- **Frontend**: Investigación en curso (React + Framer Motion o PixiJS).
+- **Frontend**: Next.js (React) + Framer Motion.
 - **Comunicación**: REST API / WebSockets para actualizaciones en tiempo real si fuera necesario.
 
 ## 3. Motor de Generación (Python)
@@ -38,3 +38,9 @@ Se utilizará un algoritmo de **Constraint Satisfaction Problem (CSP)** con back
 - Linting y formateo con **Ruff**.
 - Commits siguiendo **Conventional Commits**.
 - Documentación sincronizada con el estado del código.
+
+## 5. UX del Juego
+- Interacción por celda: vacío → X → reina → (clic) quitar reina.
+- Al colocar una reina, el cliente auto-marca con X: fila, columna, región/color y adyacentes.
+- Feedback de error sin spoilers: mensaje y animación sutil al colocar una reina en conflicto.
+- Sistema de vidas: 3 vidas por partida; cada error descuenta 1 vida; al llegar a 0, derrota.

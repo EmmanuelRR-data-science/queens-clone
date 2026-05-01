@@ -3,20 +3,34 @@
 import { useState, useEffect } from 'react';
 import GameBoard from '@/components/GameBoard';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RefreshCw, Trophy, Settings, AlertCircle } from 'lucide-react';
+import { RefreshCw, Trophy, Settings, AlertCircle, Heart, Skull } from 'lucide-react';
 import { generateQueensBoard } from '@/lib/gameEngine';
 
 export default function Home() {
+  const initialLives = 3;
   const [gameData, setGameData] = useState<{ size: number, regions: number[][] } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showWin, setShowWin] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
   const [difficulty, setDifficulty] = useState(8);
   const [error, setError] = useState<string | null>(null);
+  const [lives, setLives] = useState(initialLives);
+
+  const handleMistake = () => {
+    if (loading || showWin || gameOver) return;
+    setLives((prev) => {
+      const next = Math.max(prev - 1, 0);
+      if (next === 0) setGameOver(true);
+      return next;
+    });
+  };
 
   const fetchNewGame = async (size: number) => {
     setLoading(true);
     setShowWin(false);
+    setGameOver(false);
     setError(null);
+    setLives(initialLives);
     console.log(`Intentando cargar tablero de tamaño ${size}...`);
 
     try {
@@ -86,6 +100,20 @@ export default function Home() {
             <option value={15}>Experto (15x15)</option>
           </select>
         </div>
+
+        <div className="flex items-center gap-2 text-slate-300 text-xs font-semibold">
+          <span className="uppercase tracking-wide text-slate-400">Vidas</span>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: initialLives }).map((_, i) => (
+              <Heart
+                key={i}
+                size={16}
+                className={i < lives ? "text-red-400" : "text-slate-700"}
+                fill={i < lives ? "currentColor" : "none"}
+              />
+            ))}
+          </div>
+        </div>
         
         {error && (
           <motion.div 
@@ -109,7 +137,9 @@ export default function Home() {
           <GameBoard 
             size={gameData.size} 
             regions={gameData.regions} 
+            disabled={loading || showWin || gameOver}
             onWin={() => setShowWin(true)}
+            onMistake={handleMistake}
           />
         )}
 
@@ -134,6 +164,33 @@ export default function Home() {
                 className="bg-yellow-500 hover:bg-yellow-400 text-slate-900 px-10 py-4 rounded-full font-black text-xl shadow-lg transition-all active:scale-95"
               >
                 SIGUIENTE NIVEL
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Overlay de Derrota */}
+        <AnimatePresence>
+          {gameOver && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900/80 backdrop-blur-md rounded-xl z-10 border-4 border-red-500/40"
+            >
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ repeat: Infinity, duration: 1.4 }}
+              >
+                <Skull size={110} className="text-red-400 mb-4 drop-shadow-[0_0_15px_rgba(248,113,113,0.35)]" />
+              </motion.div>
+              <h2 className="text-4xl font-black text-white mb-2">¡DERROTA!</h2>
+              <p className="text-slate-300 mb-6 font-semibold">Te quedaste sin vidas.</p>
+              <button 
+                onClick={() => fetchNewGame(difficulty)}
+                className="bg-red-500 hover:bg-red-400 text-slate-900 px-10 py-4 rounded-full font-black text-xl shadow-lg transition-all active:scale-95"
+              >
+                REINTENTAR
               </button>
             </motion.div>
           )}
