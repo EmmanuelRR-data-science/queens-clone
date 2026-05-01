@@ -176,6 +176,29 @@ export default function GameBoard({
   // Manejar click en celda
   const handleCellClick = (r: number, c: number) => {
     if (disabled) return;
+    const hasQueenNow = state.queens[r]?.[c] ?? false;
+    const hasUserMarkNow = state.userMarks[r]?.[c] ?? false;
+
+    if (!hasQueenNow && hasUserMarkNow) {
+      const isCorrect = solutionSet.has(`${r},${c}`);
+      if (!isCorrect) {
+        setStatus('Esa reina es incorrecta.');
+        setShakeCell({ r, c });
+        onMistake?.();
+        lastActionRef.current = { r, c, action: 'queen' };
+        return;
+      }
+      pendingQueenCheckRef.current = { r, c };
+      lastActionRef.current = { r, c, action: 'queen' };
+    } else if (hasQueenNow) {
+      lastActionRef.current = { r, c, action: 'remove-queen' };
+    } else {
+      lastActionRef.current = { r, c, action: 'mark' };
+    }
+
+    setStatus(null);
+    setShakeCell(null);
+
     setState((prev) => {
       const nextQueens = prev.queens.map((row) => [...row]);
       const nextUserMarks = prev.userMarks.map((row) => [...row]);
@@ -185,30 +208,11 @@ export default function GameBoard({
 
       if (hasQueen) {
         nextQueens[r][c] = false;
-        lastActionRef.current = { r, c, action: 'remove-queen' };
-        setStatus(null);
-        setShakeCell(null);
       } else if (hasUserMark) {
-        const isCorrect = solutionSet.has(`${r},${c}`);
-        if (!isCorrect) {
-          setStatus('Esa reina es incorrecta.');
-          setShakeCell({ r, c });
-          onMistake?.();
-          lastActionRef.current = { r, c, action: 'queen' };
-          return { queens: nextQueens, userMarks: nextUserMarks };
-        }
-
         nextQueens[r][c] = true;
         nextUserMarks[r][c] = false;
-        pendingQueenCheckRef.current = { r, c };
-        lastActionRef.current = { r, c, action: 'queen' };
-        setStatus(null);
-        setShakeCell(null);
       } else {
         nextUserMarks[r][c] = true;
-        lastActionRef.current = { r, c, action: 'mark' };
-        setStatus(null);
-        setShakeCell(null);
       }
 
       return { queens: nextQueens, userMarks: nextUserMarks };
