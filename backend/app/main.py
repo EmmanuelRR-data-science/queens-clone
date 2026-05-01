@@ -1,0 +1,31 @@
+from fastapi import FastAPI, Query
+from app.generator.engine import QueensGenerator
+from typing import List, Tuple
+
+app = FastAPI(title="Queens Clone API")
+
+@app.get("/")
+async def root():
+    return {"message": "Welcome to Queens Clone API", "docs": "/docs"}
+
+@app.get("/generate")
+async def generate_board(
+    size: int = Query(default=8, ge=5, le=20)
+):
+    """
+    Endpoint para generar un nuevo tablero de Queens.
+    """
+    generator = QueensGenerator(size)
+    regions, solution = generator.generate()
+    
+    return {
+        "size": size,
+        "regions": regions,
+        "solution": solution,
+        "rules": [
+            "Una reina por fila",
+            "Una reina por columna",
+            "Una reina por región de color",
+            "Dos reinas no pueden tocarse (ni en diagonal)"
+        ]
+    }
